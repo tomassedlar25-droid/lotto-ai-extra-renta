@@ -18,3 +18,6 @@ Uložené sestavy jsou vyhodnocovány proti prvnímu pozdějšímu losování. B
 
 ## Ochrana dat
 Nepřipojuje se žádná databáze, registrace ani platební brána. Nepředkládá nárok na výherní pravděpodobnost. 18+.
+
+## Verze 1.1
+Import CSV podporuje historické losování bez dodatkového čísla: poslední sloupec `dodatkove` nechte prázdný. Uchovává stejný klíč localStorage a již uložené tikety. Starší výherní pořadí s dodatkovým číslem se nevyhodnocuje, pokud nebylo losováno.

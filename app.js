@@ -23,7 +23,26 @@ $('sets').innerHTML=state.sets.slice().reverse().map(s=>{const d=nextDraw(s);con
 function csvSave(filename,s){const blob=new Blob([s],{type:'text/csv;charset=utf-8'});download(filename,blob)}
 function download(name,blob){let a=document.createElement('a'),url=URL.createObjectURL(blob);a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000)}
 function parseDate(s){s=s.trim();if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;let m=s.match(/^(\d{1,2})\.\s*(\d{1,2})\.\s*(\d{4})$/);return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:null}
-function importCsv(src){let rows=src.replace(/^\ufeff/,'').trim().split(/\r?\n/);let added=0,bad=0;for(const line of rows){let sep=line.includes(';')?';':',';let parts=line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));let date=parseDate(parts[0]);if(!date)continue;let main=parts.slice(1,8).map(Number),bonus=Number(parts[8]);if(!valid(main,bonus)){bad++;continue}state.draws=state.draws.filter(d=>d.date!==date);state.draws.push(normalizeDraw({date,main,bonus}));added++}state.draws.sort((a,b)=>a.date.localeCompare(b.date));save();render();return {added,bad}}
+function importCsv(src){
+ const rows=src.replace(/^\ufeff/,'').trim().split(/\r?\n/);
+ let added=0,bad=0;
+ for(const line of rows){
+  const sep=line.includes(';')?';':',';
+  const parts=line.split(sep).map(v=>v.trim().replace(/^"|"$/g,''));
+  const date=parseDate(parts[0]);
+  if(!date)continue;
+  const main=parts.slice(1,8).map(Number);
+  const bonusText=(parts[8]??'').trim();
+  const bonus=bonusText===''?null:Number(bonusText);
+  const validMain=main.length===7&&new Set(main).size===7&&main.every(n=>Number.isInteger(n)&&n>=1&&n<=33);
+  const validBonus=bonus===null||(Number.isInteger(bonus)&&bonus>=1&&bonus<=33&&!main.includes(bonus));
+  if(!validMain||!validBonus){bad++;continue;}
+  state.draws=state.draws.filter(d=>d.date!==date);
+  state.draws.push(normalizeDraw({date,main,bonus}));added++;
+ }
+ state.draws.sort((a,b)=>a.date.localeCompare(b.date));save();render();return {added,bad};
+}
+
 function params(bt=false){return {method:$(bt?'btStrategy':'strategy').value,columns:bt?12:Number($('columns').value),candidates:bt?20:Number($('candidates').value),maxOverlap:bt?4:Number($('overlap').value),filtered:bt?$('btControl').checked:$('applyControl').checked,extra:bt?[]:nums($('excluded').value).filter(n=>n>=1&&n<=33)}}
 function message(msg){alert(msg)}
 document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('hidden',x.id!==b.dataset.tab));render()});
