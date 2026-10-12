@@ -1,0 +1,30 @@
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {execFileSync} from 'node:child_process';
+import assert from 'node:assert/strict';
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'extra-v21-test-'));
+const here=process.cwd();
+try{
+ const app=`import {initExtraRentaAgents} from './agent-team.mjs';\nconst K='lotto-ai-extra-renta-v1';\n// Six rule-based agents: use the existing app state and forward-test storage unchanged.\ninitExtraRentaAgents({\n getDraws:()=>state.draws,generate:makeTickets,importArchive:importCsv,\n saveAgentSet:entry=>true\n});\nif('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));render();\n`;
+ const html=`<html><head><link rel="stylesheet" href="agent-team.css?v=20"></head><body><section>EXTRA RENTA AI 2.0</section><div id="agentArchiveStatus">Načítám stav archivu…</div><script type="module" src="app.js"></script></body></html>`;
+ const team=`import {auditArchive} from './agent-core.mjs';\nexport function initExtraRentaAgents({getDraws}){return auditArchive(getDraws());}\n`;
+ const sw=`const CACHE='lotto-extra-renta-v2-0-six-agents';`;
+ for(const [name,source] of Object.entries({'app.js':app,'index.html':html,'agent-team.mjs':team,'sw.js':sw}))fs.writeFileSync(path.join(dir,name),source);
+ fs.copyFileSync(path.join(here,'install-extra-fix-v21.mjs'),path.join(dir,'install-extra-fix-v21.mjs'));
+ const install=()=>execFileSync('node',['install-extra-fix-v21.mjs'],{cwd:dir,encoding:'utf8'});
+ install();
+ const files=['app.js','index.html','agent-team.mjs','sw.js'];
+ const first=files.map(f=>fs.readFileSync(path.join(dir,f),'utf8'));
+ assert.match(first[0],/app\.js\?v=21|agent-team\.mjs\?v=21/);
+ assert.match(first[0],/Chyba inicializace:/);
+ assert.match(first[0],/updateViaCache:'none'/);
+ assert.match(first[1],/app\.js\?v=21/);
+ assert.match(first[1],/EXTRA RENTA AI 2\.1/);
+ assert.match(first[2],/agent-core\.mjs\?v=21/);
+ assert.match(first[3],/network-first shell/);
+ for(const f of ['app.js','agent-team.mjs','sw.js'])execFileSync('node',['--check',path.join(dir,f)]);
+ install();
+ assert.deepEqual(files.map(f=>fs.readFileSync(path.join(dir,f),'utf8')),first,'Opakovaná instalace musí být idempotentní.');
+ console.log('OK: bezpečná verze 2.1; cache-busting, error handling, syntax, opakované spuštění.');
+} finally {fs.rmSync(dir,{recursive:true,force:true});}

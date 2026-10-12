@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="cs"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#091326"><title>Extra Renta AI – bezpečná oprava</title><style>
+body{background:#0c192d;color:#e6f0fa;font:16px/1.55 system-ui,sans-serif;margin:0;padding:24px}main{max-width:540px;margin:8px auto}h1{font-size:24px}p{color:#b8c9db}button{display:block;width:100%;text-align:center;margin:16px 0;padding:16px;background:#63d1c5;color:#082527;border:0;border-radius:11px;font-size:16px;font-weight:750;cursor:pointer}button.secondary{background:#213b54;color:#e9f1fb}small{color:#9db5cd}output{white-space:pre-wrap;display:block;background:#142940;padding:14px;border-radius:10px;overflow-wrap:anywhere}
+</style></head><body><main><h1>EXTRA RENTA AI – oprava načítání</h1><p>Oprava vyčistí <strong>pouze mezipaměť</strong> této aplikace a znovu načte její soubory. <strong>Historii, tikety ani místní úložiště nemaže.</strong></p><output id="status">Kontroluji úložiště…</output>
+<button type="button" id="backup" class="secondary">Nejdřív stáhnout zálohu uložených dat</button>
+<button type="button" id="repair">Opravit načítání a otevřít aplikaci</button><small>Po opravě zkontroluj záložku „6 agentů“. Pokud stále ukazuje chybu, pošli její text.</small>
+</main><script>
+const key='lotto-ai-extra-renta-v1',status=document.getElementById('status');
+function info(){const raw=localStorage.getItem(key);if(raw===null)return 'Na tomto profilu není uložena historie ani tikety.';try{const s=JSON.parse(raw);return 'Místní data nalezena: '+(Array.isArray(s?.draws)?s.draws.length:'neznámý počet')+' losování a '+(Array.isArray(s?.sets)?s.sets.length:'neznámý počet')+' uložených sestav. Data zůstanou zachována.';}catch{return 'Uložená data nejsou platný JSON. Neprováděj obnovu ani mazání; nejdřív stáhni zálohu.'}}
+status.textContent=info();
+document.getElementById('backup').onclick=()=>{const raw=localStorage.getItem(key);if(raw===null){status.textContent='Žádná místní data k zálohování.';return;}const url=URL.createObjectURL(new Blob([raw],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='extra-renta-zaloha-pred-opravou.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);};
+document.getElementById('repair').onclick=async()=>{
+ const button=document.getElementById('repair');button.disabled=true;status.textContent='Mažu pouze staré soubory z mezipaměti…';
+ try{
+  if('serviceWorker'in navigator){const registrations=await navigator.serviceWorker.getRegistrations();for(const registration of registrations)if(new URL(registration.scope).pathname.includes('/lotto-ai-extra-renta/'))await registration.unregister();}
+  if('caches'in window){for(const name of await caches.keys())if(name.startsWith('lotto-extra-renta-'))await caches.delete(name);}
+  status.textContent='Mezipaměť obnovena. Tikety a historie nebyly smazány. Otevírám aplikaci…';
+  window.location.replace('./?cachefix=21');
+ }catch(err){status.textContent='Nepodařilo se dokončit: '+String(err?.message||err)+'; tvoje data nebyla smazána.';button.disabled=false;}
+};
+</script></body></html>

@@ -1,4 +1,4 @@
-import {initExtraRentaAgents} from './agent-team.mjs';
+import {initExtraRentaAgents} from './agent-team.mjs?v=21';
 const $=id=>document.getElementById(id), K='lotto-ai-extra-renta-v1';
 let state;try{state=JSON.parse(localStorage.getItem(K))||{draws:[],sets:[]}}catch{state={draws:[],sets:[]}};
 if(!Array.isArray(state.draws))state.draws=[];if(!Array.isArray(state.sets))state.sets=[];
@@ -62,6 +62,7 @@ $('exportBackup').onclick=()=>download('lotto-extra-renta-zaloha.json',new Blob(
 $('restore').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.draws)||!Array.isArray(d.sets))throw Error('Neplatná záloha.');if(!confirm('Nahradit místní historii a uložené sestavy touto zálohou?'))return;state=d;save();render()}catch(x){message(x.message)}e.target.value=''};
 
 // Six rule-based agents: use the existing app state and forward-test storage unchanged.
+try {
 initExtraRentaAgents({
  getDraws:()=>state.draws,generate:makeTickets,importArchive:importCsv,
  saveAgentSet:entry=>{
@@ -71,4 +72,9 @@ initExtraRentaAgents({
   state.sets.push(record);try{save();}catch(e){state.sets.pop();throw e;}render();return true;
  }
 });
-if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));render();
+} catch (error) {
+ console.error('EXTRA RENTA AI: inicializace agentů selhala', error);
+ const indicator=document.getElementById('agentArchiveStatus');
+ if(indicator) indicator.textContent='Chyba inicializace: '+String(error?.message||error)+'. Uložená data nebyla smazána. Použij diagnostiku cache-fix.html.';
+}
+if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js',{updateViaCache:'none'}).then(r=>r.update()).catch(()=>{}));render();

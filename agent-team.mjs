@@ -1,5 +1,5 @@
 /* EXTRA RENTA AI 2.0 — interactive six-agent lab, local and simulation-only. */
-import {auditArchive,controlABlacklist,seededRng,auditPortfolio,runWalkForward,compileReport,handoffText} from './agent-core.mjs';
+import {auditArchive,controlABlacklist,seededRng,auditPortfolio,runWalkForward,compileReport,handoffText} from './agent-core.mjs?v=21';
 const el=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const labels={control:'CONTROL A',hybrid:'HYBRID X',ensemble:'Ensemble AI',frequency:'Četnost',trend:'Trend 5/75',anti:'Antitrend 20/100',random:'Náhodný'};
