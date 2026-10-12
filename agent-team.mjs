@@ -1,5 +1,5 @@
 /* EXTRA RENTA AI 2.0 — interactive six-agent lab, local and simulation-only. */
-import {auditArchive,controlABlacklist,seededRng,auditPortfolio,runWalkForward,compileReport,handoffText} from './agent-core.mjs?v=21';
+import {auditArchive,controlABlacklist,seededRng,auditPortfolio,runWalkForward,compileReport,handoffText} from './agent-core.mjs?v=22';
 const el=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const labels={control:'CONTROL A',hybrid:'HYBRID X',ensemble:'Ensemble AI',frequency:'Četnost',trend:'Trend 5/75',anti:'Antitrend 20/100',random:'Náhodný'};
@@ -14,7 +14,7 @@ export function initExtraRentaAgents({getDraws,generate,saveAgentSet,importArchi
  const renderArchive=()=>{const a=auditArchive(getDraws());el('agentArchiveStatus').textContent=`V zařízení: ${a.count} losování · ${a.first||'—'} – ${a.last||'—'} · bez bonusu ${a.missingBonus} · ${a.ok?'struktura OK':'kontrola nutná'}`;};
  renderArchive();
  const readOptions=()=>{
-  const cfg={method:el('agentMethod').value,columns:Number(el('agentColumns').value),candidates:Number(el('agentCandidates').value),maxOverlap:Number(el('agentOverlap').value),filtered:el('agentControl').checked,extra:getNumbers(el('agentExclude').value),testDraws:Number(el('agentTestN').value),minTrain:30};
+  const cfg={method:el('agentMethod').value,columns:Number(el('agentColumns').value),candidates:Number(el('agentCandidates').value),maxOverlap:Number(el('agentOverlap').value),filtered:el('agentControl').checked,extra:getNumbers(el('agentExclude').value),testDraws:el('agentTestN').value==='all'?Math.max(0,getDraws().length-3):Number(el('agentTestN').value),minTrain:el('agentTestN').value==='all'?3:30};
   if(cfg.extra.some(n=>n<1||n>33)||new Set(cfg.extra).size!==cfg.extra.length)throw Error('Dodatečné výluky musí obsahovat různá čísla 1–33.');
   return cfg;
  };

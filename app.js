@@ -1,4 +1,4 @@
-import {initExtraRentaAgents} from './agent-team.mjs?v=21';
+import {initExtraRentaAgents} from './agent-team.mjs?v=22';
 const $=id=>document.getElementById(id), K='lotto-ai-extra-renta-v1';
 let state;try{state=JSON.parse(localStorage.getItem(K))||{draws:[],sets:[]}}catch{state={draws:[],sets:[]}};
 if(!Array.isArray(state.draws))state.draws=[];if(!Array.isArray(state.sets))state.sets=[];
@@ -57,7 +57,33 @@ $('sets').onclick=e=>{let b=e.target.closest('[data-delset]');if(b&&confirm('Sma
 $('import').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let r=importCsv(await f.text());message(`Import hotov: ${r.added} přidaných/aktualizovaných, ${r.bad} odmítnutých řádků.`)}catch(x){message(x.message)}e.target.value=''};
 $('exportHistory').onclick=()=>csvSave('extra-renta-historie.csv','datum;c1;c2;c3;c4;c5;c6;c7;bonus\n'+state.draws.map(d=>[d.date,...d.main,d.bonus].join(';')).join('\n'));
 $('seed').onclick=()=>{if(!confirm('Vložit 5 historických výsledků (nepřepíše jiné datum)?'))return;const demo=[['2026-09-21',[3,5,21,22,24,28,30],18],['2026-09-24',[12,19,20,23,29,31,32],17],['2026-09-28',[1,5,10,25,26,27,30],11],['2026-10-01',[4,9,13,23,26,31,32],7],['2026-10-03',[1,2,9,13,17,18,28],30],['2026-10-05',[7,8,14,16,21,27,32],26]];/* Skip uncertain first record */for(const [date,main,bonus] of demo.slice(1))addDraw({date,main,bonus});message('Načteno 5 historických výsledků do 5. 10. 2026. Novější si doplň ručně nebo CSV importem.')};
-$('runBt').onclick=()=>{try{const n=Number($('btN').value),p=params(true);if(state.draws.length<8)throw Error('Backtest vyžaduje alespoň 8 historických losování. Importuj delší archiv CSV.');let test=state.draws.slice(Math.max(3,state.draws.length-n));let counts=[0,0,0,0,0,0,0,0],wins=0,total=0,skipped=0,benchmark=0;for(const draw of test){let history=state.draws.filter(x=>x.date<draw.date);if(history.length<3){skipped++;continue}let ts;try{ts=makeTickets(history,p)}catch{skipped++;continue}for(const t of ts){let m=match(t,draw);counts[m.n]++;total++;wins+=!!m.prize}let rand=makeTickets(history,{...p,method:'random'});benchmark+=rand.filter(t=>match(t,draw).prize).length} $('btResult').innerHTML=`<div class="line"></div><h3>Výsledky backtestu</h3><div class="stats"><div class="stat"><strong>${total}</strong><small>sloupců</small></div><div class="stat"><strong>${wins}</strong><small>výherních</small></div><div class="stat"><strong>${benchmark}</strong><small>náhodný vzorek</small></div><div class="stat"><strong>${skipped}</strong><small>vynecháno</small></div></div><p class="muted">Zásahy hlavních čísel: ${counts.map((v,i)=>`${i}: ${v}`).join(' · ')}</p><p class="muted tiny">Náhodné srovnání je jediný simulovaný vzorek. Test při opakování nemusí dát shodná čísla (generátor používá náhodnost). Historické úspěchy nezaručují budoucí výhry.</p>`}catch(e){message(e.message)}};
+$('runBt').onclick=async()=>{
+ const btn=$('runBt');if(btn.disabled)return;
+ btn.disabled=true;
+ try{
+  const choice=$('btN').value,all=choice==='all';
+  const n=all?Math.max(0,state.draws.length-3):Number(choice),p=params(true);
+  if(state.draws.length<8)throw Error('Backtest vyžaduje alespoň 8 historických losování. Importuj delší archiv CSV.');
+  if(!Number.isInteger(n)||n<1||n>10000)throw Error('Neplatný počet testovaných tahů.');
+  if(!all&&n>state.draws.length-3)throw Error('K dispozici je jen '+Math.max(0,state.draws.length-3)+' testovatelných tahů; zvol Celá dostupná historie.');
+  const test=state.draws.slice(state.draws.length-n);
+  let counts=Array(8).fill(0),wins=0,total=0,skipped=0,benchmark=0;
+  $('btResult').textContent='Backtest: 0 / '+test.length+' tahů…';
+  await new Promise(resolve=>setTimeout(resolve,0));
+  for(const [i,draw] of test.entries()){
+   const history=state.draws.slice(0,state.draws.length-n+i);
+   if(history.length<3){skipped++;continue;}
+   let ts,rand;
+   try{ts=makeTickets(history,p);rand=makeTickets(history,{...p,method:'random'});}
+   catch{skipped++;continue;}
+   for(const t of ts){const m=match(t,draw);counts[m.n]++;total++;wins+=Number(!!m.prize);}
+   benchmark+=rand.filter(t=>match(t,draw).prize).length;
+   if(i%5===4||i===test.length-1){$('btResult').textContent='Backtest: '+(i+1)+' / '+test.length+' tahů…';await new Promise(resolve=>setTimeout(resolve,0));}
+  }
+  $('btResult').innerHTML='<div class="line"></div><h3>Výsledky backtestu</h3><div class="stats"><div class="stat"><strong>'+total+'</strong><small>sloupců</small></div><div class="stat"><strong>'+wins+'</strong><small>výherních</small></div><div class="stat"><strong>'+benchmark+'</strong><small>náhodný vzorek</small></div><div class="stat"><strong>'+skipped+'</strong><small>vynecháno</small></div></div><p class="muted">Testováno '+(test.length-skipped)+' z '+test.length+' tahů; první tři tahy jsou trénovací vstup. Zásahy hlavních čísel: '+counts.map((v,i)=>i+': '+v).join(' · ')+'</p><p class="muted tiny">Tento původní backtest používá náhodné generování, takže se při opakování může lišit. Reprodukovatelný backtest je v záložce 6 agentů. Historické výsledky nezaručují výhru.</p>';
+ }catch(e){message(e.message);}
+ finally{btn.disabled=false;}
+};
 $('exportBackup').onclick=()=>download('lotto-extra-renta-zaloha.json',new Blob([JSON.stringify(state,null,2)],{type:'application/json'}));
 $('restore').onchange=async e=>{let f=e.target.files[0];if(!f)return;try{let d=JSON.parse(await f.text());if(!Array.isArray(d.draws)||!Array.isArray(d.sets))throw Error('Neplatná záloha.');if(!confirm('Nahradit místní historii a uložené sestavy touto zálohou?'))return;state=d;save();render()}catch(x){message(x.message)}e.target.value=''};
 

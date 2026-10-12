@@ -57,7 +57,7 @@ const wait=()=>new Promise(resolve=>setTimeout(resolve,0));
 export async function runWalkForward(draws,config,generate,progress=()=>{}){
  if(!auditArchive(draws).ok)throw Error('Archiv neprošel vstupní kontrolou.');
  const count=Number(config.testDraws),minTrain=Number(config.minTrain??30);
- if(!Number.isInteger(count)||count<1||count>500||!Number.isInteger(minTrain)||minTrain<3)throw Error('Neplatný rozsah backtestu.');
+ if(!Number.isInteger(count)||count<1||count>10000||!Number.isInteger(minTrain)||minTrain<3)throw Error('Neplatný rozsah backtestu.');
  if(draws.length-minTrain<count)throw Error(`MISSING: pro ${count} testovaných tahů potřebujeme alespoň ${count+minTrain} předchozích a testovaných losování.`);
  const begin=draws.length-count,model=newCounter(),baseline=newCounter(),rows=[];let skipped=0;
  for(let i=begin;i<draws.length;i++){
