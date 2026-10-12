@@ -1,0 +1,22 @@
+/* Extra Renta AI 2.0 — styles isolated to six-agent page. */
+#agents .agent-eyebrow{font-size:11px;color:#66d4bf;letter-spacing:.09em;font-weight:800;text-transform:uppercase}
+#agents .agent-panel{border:1px solid #30445d;border-radius:16px;background:#131f31;padding:17px;margin:14px 0}
+#agents .agent-panel h3{font-size:18px;margin:9px 0 15px}
+#agents .agent-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:17px 0}
+#agents .agent-grid>div{background:#20344b;border-radius:10px;padding:14px 8px;text-align:center}
+#agents .agent-grid strong{display:block;font-size:25px;color:#baf2e7}
+#agents .agent-grid small{display:block;font-size:10px;color:#b1c4d9;margin-top:7px}
+#agents .agent-ticket{display:flex;align-items:center;gap:12px;padding:10px 2px;border-top:1px solid #2b425a}
+#agents .agent-ticket>strong{color:#9bb5ce;width:23px;font-size:12px}
+#agents .agent-ticket-balls{display:flex;align-items:center;flex-wrap:wrap;gap:5px}
+#agents .er-agent-ball{display:inline-grid;place-items:center;background:#eef6ff;color:#16304b;border-radius:100%;font-weight:900;font-size:12px;width:32px;height:32px}
+#agents .agent-detail{border:1px solid #293c55;border-radius:10px;overflow:hidden;margin:7px 0;background:#1a2a3e}
+#agents .agent-detail summary{cursor:pointer;padding:14px;font-weight:700}
+#agents .agent-detail pre{padding:13px;border-top:1px solid #33485c;white-space:pre-wrap;overflow-wrap:anywhere;font-size:11px;color:#d3e4ef;line-height:1.6;margin:0}
+#agents .agent-warning{border-left:3px solid #e3b67b;padding:12px;background:#423d2b66;color:#f2d2ad;font-size:12px;line-height:1.65}
+#agents .agent-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+#agents .agent-actions button{flex:1;min-width:140px}
+#agents button:disabled{opacity:.45;cursor:not-allowed}
+#agents .agent-status{min-height:34px;line-height:1.6;font-size:12px;color:#b9dfd7;margin-top:12px}
+#agents .agent-explainer{font-size:12px;color:#a8bdd2;line-height:1.7}
+@media(max-width:600px){#agents .agent-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#agents .er-agent-ball{width:29px;height:29px;font-size:11px}#agents .agent-panel{padding:13px}}
